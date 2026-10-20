@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智學星圖｜紫微 × MBTI 學校配對平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div id="app"></div>
+<script>
+const HK_SCHOOLS = {
+  kindergarten: [
+    { name: "拔萃女小學附屬幼稚園", type: "直資", focus: "學術+雙語", style: "academic", district: "九龍塘", rank: "頂尖", img: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400" },
+    { name: "聖保羅男女中學附屬小學幼稚園", type: "直資", focus: "全人發展", style: "balanced", district: "跑馬地", rank: "頂尖", img: "https://images.unsplash.com/photo-1562774053-701939374585?w=400" },
+    { name: "漢基國際幼稚園", type: "國際", focus: "創意+英語", style: "creative", district: "半山", rank: "頂尖", img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400" },
+    { name: "維多利亞幼稚園", type: "私立", focus: "傳統學術", style: "academic", district: "何文田", rank: "優良", img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400" },
+  ],
+  primary: [
+    { name: "拔萃女小學 (DGJS)", type: "直資", focus: "學術卓越", style: "academic", district: "九龍塘", rank: "頂尖", img: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400" },
+    { name: "聖保羅男女中學附屬小學", type: "直資", focus: "全人+學術", style: "balanced", district: "跑馬地", rank: "頂尖", img: "https://images.unsplash.com/photo-1562774053-701939374585?w=400" },
+    { name: "喇沙小學", type: "直資", focus: "傳統+運動", style: "traditional", district: "九龍塘", rank: "頂尖", img: "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400" },
+    { name: "漢基國際學校 (小學)", type: "國際", focus: "IB+創意", style: "creative", district: "半山", rank: "頂尖", img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400" },
+    { name: "優才（楊殷有娣）書院", type: "直資", focus: "資優教育", style: "inquiry", district: "沙田", rank: "優良", img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400" },
+  ],
+  secondary: [
+    { name: "拔萃女書院", type: "直資", focus: "學術頂尖", style: "academic", district: "九龍塘", rank: "頂尖", img: "https://images.unsplash.com/photo-1562774053-701939374585?w=400" },
+    { name: "聖保羅男女中學", type: "直資", focus: "全人發展", style: "balanced", district: "跑馬地", rank: "頂尖", img: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400" },
+    { name: "喇沙書院", type: "直資", focus: "傳統+體育", style: "traditional", district: "九龍塘", rank: "頂尖", img: "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400" },
+    { name: "漢基國際學校", type: "國際", focus: "IB", style: "creative", district: "半山", rank: "頂尖", img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400" },
+    { name: "真道書院", type: "直資", focus: "基督教+IB", style: "inquiry", district: "將軍澳", rank: "優良", img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400" },
+  ]
+};
+
+const INSTITUTIONS = {
+  chinese: [
+    { name: "學而思", type: "中文/數學", district: "多區", contact: "2111 1888", web: "www.xueersi.hk", focus: "系統課程" },
+    { name: "現代教育", type: "中文", district: "多區", contact: "2110 9888", web: "www.modern.edu.hk", focus: "閱讀寫作" },
+    { name: "遵理學校", type: "中文", district: "多區", contact: "2723 8338", web: "www.beacon.com.hk", focus: "文憑試" },
+  ],
+  english: [
+    { name: "英皇教育", type: "英文", district: "多區", contact: "2111 1888", web: "www.kge.hk", focus: "文法會話" },
+    { name: "British Council", type: "英文", district: "多區", contact: "2913 5100", web: "www.britishcouncil.hk", focus: "國際英語" },
+    { name: "EF English First", type: "英文", district: "多區", contact: "2111 1688", web: "www.ef.com.hk", focus: "沉浸英語" },
+  ],
+  math: [
+    { name: "學而思", type: "數學", district: "多區", contact: "2111 1888", web: "www.xueersi.hk", focus: "奧數思維" },
+    { name: "英皇教育", type: "數學", district: "多區", contact: "2111 1888", web: "www.kge.hk", focus: "階梯課程" },
+    { name: "現代教育", type: "數學", district: "多區", contact: "2110 9888", web: "www.modern.edu.hk", focus: "解題技巧" },
+  ],
+  activity: [
+    { name: "小童群益會", type: "多元活動", district: "多區", contact: "2396 3211", web: "www.bgca.org.hk", focus: "體育藝術" },
+    { name: "香港青年協會", type: "領袖訓練", district: "多區", contact: "2527 2448", web: "www.hkfyg.org.hk", focus: "團隊合作" },
+    { name: "香港藝術中心", type: "藝術", district: "灣仔", contact: "2582 0200", web: "www.hkac.org.hk", focus: "創意表達" },
+  ]
+};
+
+const MBTI_DETAILS = {
+  "INTJ": { name: "戰略家", learning: "喜歡系統化、深度學習、自己規劃進度", school: "學術導向、直資／IB、資優", tip: "需要足夠挑戰，避免重複練習" },
+  "INTP": { name: "邏輯學家", learning: "喜歡問點解、自主探究、理論", school: "探究式、IB、資優", tip: "對死記冇興趣，要給予思考空間" },
+  "ENTJ": { name: "指揮官", learning: "目標明確、喜歡競爭同效率", school: "學術 + 領袖訓練", tip: "學習合作同聆聽他人意見" },
+  "ENTP": { name: "辯論家", learning: "喜歡新點子、挑戰、辯論", school: "創意、專題式", tip: "需要收斂同完成任務嘅訓練" },
+  "INFJ": { name: "提倡者", learning: "重視意義、喜歡深度同一對一", school: "全人、價值導向", tip: "給予情緒空間，避免過度壓力" },
+  "INFP": { name: "調停者", learning: "喜歡表達、創作、自主", school: "創意、藝術、自由", tip: "多鼓勵，避免嚴厲批評" },
+  "ENFJ": { name: "主人公", learning: "喜歡合作、討論、幫助他人", school: "團隊、全人發展", tip: "注意不要太在意他人評價" },
+  "ENFP": { name: "競選者", learning: "多元興趣、喜歡新奇同互動", school: "創意、多元活動", tip: "需要適度結構幫助專注" },
+  "ISTJ": { name: "物流師", learning: "步驟清楚、喜歡重複練習", school: "傳統、結構化學校", tip: "對變化要逐步適應" },
+  "ISFJ": { name: "守衛者", learning: "穩定環境、細心、有支持", school: "傳統、關懷型", tip: "鼓勵表達自己意見" },
+  "ESTJ": { name: "總經理", learning: "規則、效率、成果導向", school: "學術、紀律型", tip: "學習彈性同同理心" },
+  "ESFJ": { name: "執政官", learning: "團隊合作、被認可", school: "全人、群體活動", tip: "平衡人際同個人專注" },
+  "ISTP": { name: "鑑別師", learning: "動手實作、解決問題", school: "STEM、探究、活動", tip: "理論課要配合實例" },
+  "ISFP": { name: "探險家", learning: "美感、自由表達、感性", school: "創意、藝術", tip: "對壓力敏感，需要安全環境" },
+  "ESTP": { name: "企業家", learning: "實務、即時回饋、行動", school: "體育、活動導向", tip: "引導衝動，建立計劃習慣" },
+  "ESFP": { name: "娛樂家", learning: "互動、好玩、體驗式", school: "多元、社交型", tip: "枯燥內容要用遊戲化方式" }
+};
+
+const MBTI_STYLES = {
+  "INTJ": { style: "academic", desc: "戰略型、喜歡系統化學習" },
+  "INTP": { style: "inquiry", desc: "探索型、喜歡深度思考" },
+  "ENTJ": { style: "academic", desc: "領導型、目標導向" },
+  "ENTP": { style: "creative", desc: "創新型、喜歡挑戰" },
+  "INFJ": { style: "balanced", desc: "理想型、重視意義" },
+  "INFP": { style: "creative", desc: "理想主義、喜歡表達" },
+  "ENFJ": { style: "balanced", desc: "導師型、喜歡合作" },
+  "ENFP": { style: "creative", desc: "熱情型、多元興趣" },
+  "ISTJ": { style: "traditional", desc: "可靠型、喜歡結構" },
+  "ISFJ": { style: "traditional", desc: "照顧型、穩定學習" },
+  "ESTJ": { style: "academic", desc: "管理型、重視效率" },
+  "ESFJ": { style: "balanced", desc: "社交型、喜歡團隊" },
+  "ISTP": { style: "inquiry", desc: "實作型、喜歡動手" },
+  "ISFP": { style: "creative", desc: "藝術型、感性學習" },
+  "ESTP": { style: "traditional", desc: "行動型、喜歡實務" },
+  "ESFP": { style: "creative", desc: "表演型、喜歡互動" }
+};
+
+const MBTI_QUESTIONS = [
+  { dim: "EI", q: "小朋友比較喜歡？", a: "同好多朋友一齊玩", b: "自己或者一兩個好朋友玩" },
+  { dim: "EI", q: "放學後通常會？", a: "想出外活動、同人傾計", b: "想休息、自己做自己嘅事" },
+  { dim: "EI", q: "遇到新同學時？", a: "主動打招呼", b: "等對方先開口" },
+  { dim: "SN", q: "聽故事時比較注意？", a: "具體發生咗咩事", b: "背後嘅意思同可能性" },
+  { dim: "SN", q: "做功課時比較喜歡？", a: "按步驟清楚做", b: "自己諗新方法" },
+  { dim: "SN", q: "描述一件事時？", a: "講事實同細節", b: "講感覺同聯想" },
+  { dim: "TF", q: "朋友唔開心時，小朋友會？", a: "幫佢分析點解", b: "先安慰佢感受" },
+  { dim: "TF", q: "做決定時比較看重？", a: "公不公平、合唔合理", b: "會唔會傷害到人" },
+  { dim: "TF", q: "被批評時？", a: "想知自己邊度錯", b: "會覺得唔舒服" },
+  { dim: "JP", q: "玩具同書本？", a: "喜歡放好位置", b: "隨便放都得" },
+  { dim: "JP", q: "做事前？", a: "想先計劃好", b: "做到邊度算邊度" },
+  { dim: "JP", q: "放假時？", a: "喜歡有時間表", b: "喜歡自由安排" }
+];
+
+function calculateMBTI(answers) {
+  const scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+  answers.forEach((ans, i) => {
+    const q = MBTI_QUESTIONS[i];
+    if (ans === "A") {
+      if (q.dim === "EI") scores.E++; else if (q.dim === "SN") scores.S++; else if (q.dim === "TF") scores.T++; else scores.J++;
+    } else {
+      if (q.dim === "EI") scores.I++; else if (q.dim === "SN") scores.N++; else if (q.dim === "TF") scores.F++; else scores.P++;
+    }
+  });
+  return (scores.E >= scores.I ? "E" : "I") + (scores.S >= scores.N ? "S" : "N") + (scores.T >= scores.F ? "T" : "F") + (scores.J >= scores.P ? "J" : "P");
+}
+
+function getZodiac(year) {
+  return ["鼠","牛","虎","兔","龍","蛇","馬","羊","猴","雞","狗","豬"][(year - 4) % 12];
+}
+
+function analyzeChild(child) {
+  const year = new Date(child.dob).getFullYear();
+  const zodiac = getZodiac(year);
+  const mbti = MBTI_STYLES[child.mbti] || MBTI_STYLES["ENFP"];
+  const hour = parseInt((child.birthTime || "12:00").split(":")[0]);
+  let element = hour < 3 || hour >= 23 ? "水" : hour < 7 ? "木" : hour < 11 ? "火" : hour < 15 ? "土" : hour < 19 ? "金" : "水";
+  return { zodiac, element, personality: `${zodiac}年生，五行偏${element}。MBTI ${child.mbti}：${mbti.desc}`, recommendedStyle: mbti.style };
+}
+
+function estimateTravel(from, to) {
+  if (!from || !to || from === to) return "約 15-25 分鐘";
+  const far = ["元朗","屯門","北區","大埔","西貢","離島"];
+  const mid = ["沙田","荃灣","葵青","觀塘","黃大仙"];
+  if (far.includes(from) && !far.includes(to)) return "約 45-70 分鐘";
+  if (mid.includes(from) && far.includes(to)) return "約 40-60 分鐘";
+  if (from.includes("九龍") && to.includes("港島") || from.includes("港島") && to.includes("九龍")) return "約 30-50 分鐘";
+  return "約 20-40 分鐘";
+}
+
+function recommendSchools(analysis, level) {
+  return (HK_SCHOOLS[level] || []).map(s => {
+    let score = 68 + Math.floor(Math.random() * 15);
+    if (s.style === analysis.recommendedStyle) score += 12;
+    return { ...s, match: Math.min(95, score) };
+  }).sort((a,b) => b.match - a.match);
+}
+
+function recommendInstitutions(analysis, avg) {
+  const recs = [];
+  if (!avg || avg < 75) {
+    recs.push({ category: "中文加強", items: INSTITUTIONS.chinese });
+    recs.push({ category: "數學加強", items: INSTITUTIONS.math });
+  }
+  recs.push({ category: "英文／外語", items: INSTITUTIONS.english });
+  recs.push({ category: analysis.recommendedStyle === "creative" ? "創意活動" : "多元活動", items: INSTITUTIONS.activity });
+  return recs;
+}
+
+function getDifficultyByGrade(grade) {
+  const easy = ["未開始","PN","K1","K2","K3","P1","P2"];
+  const medium = ["P3","P4"];
+  if (easy.includes(grade)) return "easy";
+  if (medium.includes(grade)) return "medium";
+  return "hard";
+}
+
+function getNextSchoolLevel(grade) {
+  if (["未開始","PN","K1","K2","K3"].includes(grade)) return "primary";
+  if (["P1","P2","P3","P4","P5","P6"].includes(grade)) return "secondary";
+  return "secondary";
+}
+
+function getNextLevelName(grade) {
+  if (["未開始","PN","K1","K2","K3"].includes(grade)) return "小學推薦（即將升讀）";
+  if (["P1","P2","P3","P4","P5","P6"].includes(grade)) return "中學推薦（即將升讀）";
+  return "中學推薦";
+}
+
+function getSchoolLevel(dob) {
+  if (!dob) return "primary";
+  const birth = new Date(dob);
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+  if (age < 6) return "kindergarten";
+  if (age < 12) return "primary";
+  return "secondary";
+}
+
+function getLevelName(level) {
+  return level === "kindergarten" ? "幼稚園" : level === "primary" ? "小學" : "中學";
+}
+
+function getDifficultyByGrade(grade) {
+  const easy = ["未開始","PN","K1","K2","K3","P1","P2"];
+  const medium = ["P3","P4"];
+  if (easy.includes(grade)) return "easy";
+  if (medium.includes(grade)) return "medium";
+  return "hard";
+}
+
+function generateQuestions(subject, difficulty = "medium") {
+  const bank = {
+    chinese: {
+      easy: [
+        "「大」的反義詞是？|小,多,高|0",
+        "哪個是水果？|桌子,蘋果,書本|1",
+        "貓有幾隻腳？|兩隻,四隻,六隻|1",
+        "「紅」是什麼？|顏色,動物,數字|0",
+        "一加一等於？|一,二,三|1",
+        "哪個是動物？|桌子,貓,書|1",
+        "「上」的反義是？|下,左,右|0",
+        "太陽是什麼顏色？|藍色,黃色,綠色|1",
+        "哪個字是「日」？|月,日,星|1",
+        "兩隻手有幾隻手指？|八,十,十二|1",
+        "「媽媽」的相反是？|爸爸,姐姐,弟弟|0",
+        "下雨天要用？|太陽眼鏡,雨傘,帽子|1",
+        "哪個是正確的？|我吃飯,我吃了飯|1",
+        "「快樂」的反義是？|悲傷,高興,興奮|0",
+        "一打是多少個？|六,十,十二|2"
+      ],
+      medium: [
+        "「春眠不覺曉」下一句？|處處聞啼鳥,夜來風雨聲|0",
+        "正確成語？|畫蛇添足,畫蛇添腳|0",
+        "「床前明月光」作者？|杜甫,李白|1",
+        "「守株待兔」比喻？|勤勞,不勞而獲|1",
+        "「亡羊補牢」意思？|太遲了,及時補救|1",
+        "「靜夜思」作者？|杜甫,李白|1",
+        "哪個是褒義詞？|懶惰,勤奮|1",
+        "「一石二鳥」意思？|失敗,一舉兩得|1",
+        "「綠」在「春風又綠江南岸」是？|名詞,動詞|1",
+        "哪個是動詞？|美麗,跑步|1",
+        "「畫龍點睛」意思？|失敗,關鍵一筆|1",
+        "李白是哪個朝代？|唐,宋|0",
+        "「人山人海」形容？|人多,人少|0",
+        "問句用什麼標點？|。,？|1",
+        "「山重水複疑無路」下一句？|柳暗花明又一村,花落知多少|0"
+      ],
+      hard: [
+        "「落霞與孤鶩齊飛」下一句？|秋水共長天一色,夜來風雨聲|0",
+        "出自《史記》的成語？|臥薪嘗膽,守株待兔|0",
+        "「春風又綠江南岸」作者？|李白,王安石|1",
+        "「一鼓作氣」出自？|曹劌論戰,孫子兵法|0",
+        "「洛陽紙貴」比喻？|紙貴,作品受歡迎|1",
+        "「破釜沉舟」主人公？|劉邦,項羽|1",
+        "哪個是貶義詞？|勤奮,狡猾|1",
+        "「望梅止渴」人物？|曹操,劉備|0",
+        "「畫蛇添足」出自？|戰國策,史記|0",
+        "「靜夜思」體裁？|律詩,絕句|1",
+        "通假字例子？|說→悅,看→見|0",
+        "文言文「之」可作？|代詞,助詞,以上皆可|2",
+        "宋詞代表人物？|李白,蘇軾|1",
+        "省略號是？|……,——|0",
+        "使動用法例子？|綠,飛|0"
+      ]
+    },
+    english: {
+      easy: [
+        "She ___ happy.|is,are|0",
+        "I have ___ apple.|a,an|1",
+        "The cat is ___ the table.|in,on|1",
+        "Opposite of hot?|cold,warm|0",
+        "Plural of cat?|cats,cates|0",
+        "I ___ a student.|is,am|1",
+        "What color is the sky?|red,blue|1",
+        "He ___ to school.|go,goes|1",
+        "This is ___ pen.|me,my|1",
+        "They ___ friends.|is,are|1",
+        "I like ___.|apple,apples|1",
+        "The dog is ___.|big,run|0",
+        "___ is your name?|What,Where|0",
+        "She ___ water.|drink,drinks|1",
+        "Two plus two is ___.|three,four|1"
+      ],
+      medium: [
+        "Past tense of eat?|eated,ate|1",
+        "They ___ playing now.|is,are|1",
+        "He ___ a book every day.|read,reads|1",
+        "Plural of child?|childs,children|1",
+        "She is ___ than me.|tall,taller|1",
+        "There ___ many books.|is,are|1",
+        "Past tense of go?|goed,went|1",
+        "Which is a verb?|happy,run|1",
+        "I ___ to the park yesterday.|go,went|1",
+        "She has ___ finished.|already,yet|0",
+        "Good ___ English.|in,at|1",
+        "I have lived here ___ 5 years.|since,for|1",
+        "If I ___ you, I would go.|am,were|1",
+        "The movie was ___ interesting.|very,much|0",
+        "Choose: This is ___ book.|me,my|1"
+      ],
+      hard: [
+        "Had I known, I ___ have come.|will,would|1",
+        "The report ___ by tomorrow.|will finish,will be finished|1",
+        "Neither of them ___ right.|is,are|0",
+        "She suggested that he ___ earlier.|comes,come|1",
+        "The more you practice, ___ you become.|better,the better|1",
+        "It is high time we ___ action.|take,took|1",
+        "Scarcely ___ he arrived when it rained.|had,has|0",
+        "The committee ___ divided.|is,are|1",
+        "I wish I ___ harder last year.|studied,had studied|1",
+        "Not only ___ he late, but...|was,is|0",
+        "The data ___ carefully analyzed.|was,were|1",
+        "Provided that you ___ hard...|work,works|0",
+        "The phenomenon ___ explained yet.|hasn't been,haven't been|0",
+        "Were it not for you, I ___ failed.|will have,would have|1",
+        "The majority of students ___ present.|was,were|1"
+      ]
+    },
+    math: {
+      easy: [
+        "2 + 3 = ?|4,5|1",
+        "5 - 2 = ?|2,3|1",
+        "4 × 2 = ?|6,8|1",
+        "10 ÷ 2 = ?|4,5|1",
+        "一打有多少？|10,12|1",
+        "一半的 10 是？|4,5|1",
+        "6 + 4 = ?|9,10|1",
+        "8 - 3 = ?|4,5|1",
+        "3 × 3 = ?|6,9|1",
+        "9 + 1 = ?|9,10|1",
+        "7 - 4 = ?|2,3|1",
+        "兩打是？|12,24|1",
+        "5 × 1 = ?|4,5|1",
+        "12 ÷ 3 = ?|3,4|1",
+        "6 + 6 = ?|11,12|1"
+      ],
+      medium: [
+        "15 + 27 = ?|42,41|0",
+        "8 × 7 = ?|54,56|1",
+        "100 - 37 = ?|63,73|0",
+        "9 × 6 = ?|54,56|0",
+        "45 + 28 = ?|73,72|0",
+        "7 × 8 = ?|54,56|1",
+        "80 - 29 = ?|51,61|0",
+        "6 × 9 = ?|54,56|0",
+        "36 ÷ 6 = ?|5,6|1",
+        "23 + 39 = ?|62,61|0",
+        "11 × 7 = ?|77,70|0",
+        "90 - 47 = ?|43,53|0",
+        "8 × 8 = ?|64,56|0",
+        "72 ÷ 8 = ?|8,9|1",
+        "15 × 4 = ?|60,50|0"
+      ],
+      hard: [
+        "17 × 13 = ?|221,211|0",
+        "256 ÷ 16 = ?|16,14|0",
+        "89 + 76 = ?|165,155|0",
+        "23 × 15 = ?|345,335|0",
+        "1000 - 387 = ?|613,623|0",
+        "18 × 19 = ?|342,332|0",
+        "144 ÷ 12 = ?|12,11|0",
+        "47 + 68 = ?|115,105|0",
+        "32 × 12 = ?|384,374|0",
+        "500 ÷ 25 = ?|20,18|0",
+        "99 - 47 = ?|52,42|0",
+        "14 × 16 = ?|224,214|0",
+        "360 ÷ 24 = ?|15,14|0",
+        "67 + 89 = ?|156,146|0",
+        "25 × 16 = ?|400,390|0"
+      ]
+    }
+  };
+  const level = difficulty || "medium";
+  const raw = (bank[subject] && bank[subject][level]) || bank.math.medium;
+  return raw.sort(() => Math.random() - 0.5).slice(0, 15).map((line, i) => {
+    const parts = line.split("|");
+    return { id: i, question: parts[0], options: parts[1].split(","), answer: parseInt(parts[2]) };
+  });
+}
+
+let state = {
+  children: JSON.parse(localStorage.getItem("zhixue_children") || "[]"),
+  currentChild: null, currentTest: null, mbtiTest: null, tempChild: null,
+  districtFilter: localStorage.getItem("zhixue_district") || "全部",
+  apiKey: localStorage.getItem("zhixue_apikey") || "",
+  apiProvider: localStorage.getItem("zhixue_provider") || "xai",
+  view: "home"
+};
+
+function save() {
+  localStorage.setItem("zhixue_children", JSON.stringify(state.children));
+  localStorage.setItem("zhixue_district", state.districtFilter);
+  localStorage.setItem("zhixue_apikey", state.apiKey);
+  localStorage.setItem("zhixue_provider", state.apiProvider);
+}
+
+function clearAllData() {
+  if (confirm("清除所有資料？")) { localStorage.removeItem("zhixue_children"); state.children = []; state.view = "home"; render(); }
+}
+
+function getDistricts() {
+  const all = [].concat(...Object.values(HK_SCHOOLS));
+  return ["全部", ...new Set(all.map(s => s.district))].sort();
+}
+
+function filterSchools(list) {
+  let result = state.districtFilter === "全部" ? list : list.filter(s => s.district === state.districtFilter);
+  if (state.typeFilter && state.typeFilter !== "全部") {
+    result = result.filter(s => s.type === state.typeFilter);
+  }
+  return result;
+}
+
+function render() {
+  const app = document.getElementById("app");
+  if (state.view === "home") app.innerHTML = renderHome();
+  else if (state.view === "profile") app.innerHTML = renderProfile();
+  else if (state.view === "mbti") app.innerHTML = renderMBTI();
+  else if (state.view === "dashboard") {
+    app.innerHTML = renderDashboard();
+    setTimeout(renderRadar, 100);
+  }
+  else if (state.view === "test") app.innerHTML = renderTest();
+  else if (state.view === "result") app.innerHTML = renderResult();
+}
+
+function renderHome() {
+  return `<div class="gradient-bg min-h-screen py-10"><div class="max-w-xl mx-auto px-4 text-white text-center mb-6"><h1 class="text-4xl font-bold">智學星圖</h1><p>紫微 × MBTI 學校配對</p></div>
+  <div class="max-w-xl mx-auto bg-white rounded-3xl p-6 text-gray-800">
+    <h2 class="font-bold mb-3">選擇孩子</h2>
+    ${state.children.map((c,i)=>`<button onclick="selectChild(${i})" class="w-full text-left p-3 border rounded-xl mb-2">${c.name} · ${c.grade} · ${c.mbti||""}</button>`).join("")||"<p class='text-gray-500 text-center'>未有孩子</p>"}
+    <button onclick="state.view='profile';render()" class="w-full bg-indigo-600 text-white py-3 rounded-xl mt-3">新增孩子</button>
+    ${state.children.length?`<button onclick="clearAllData()" class="w-full text-sm text-gray-500 mt-2">清除資料</button>`:""}
+    <div class="mt-6 pt-4 border-t text-sm">
+      <div class="mb-2">大模型 API（選填）</div>
+      <select onchange="state.apiProvider=this.value;save()" class="w-full border rounded px-2 py-1 mb-2">
+        <option value="xai" ${state.apiProvider==="xai"?"selected":""}>xAI Grok</option>
+        <option value="openai" ${state.apiProvider==="openai"?"selected":""}>OpenAI</option>
+      </select>
+      <input type="password" placeholder="API Key" value="${state.apiKey}" onchange="state.apiKey=this.value;save()" class="w-full border rounded px-2 py-1">
+    </div>
+  </div></div>`;
+}
+
+function renderProfile() {
+  return `<div class="min-h-screen bg-gray-50 py-8 px-4"><div class="max-w-md mx-auto bg-white rounded-3xl p-6">
+    <button onclick="state.view='home';render()" class="text-indigo-600 mb-4">← 返回</button>
+    <h2 class="text-xl font-bold mb-4">新增孩子</h2>
+    <form onsubmit="saveChild(event)" class="space-y-3">
+      <input name="name" required placeholder="姓名" class="w-full border rounded-xl px-3 py-2">
+      <div class="grid grid-cols-2 gap-2"><input name="dob" type="date" required class="border rounded-xl px-3 py-2"><input name="birthTime" type="time" required class="border rounded-xl px-3 py-2"></div>
+      <select name="gender" class="w-full border rounded-xl px-3 py-2"><option value="F">女</option><option value="M">男</option></select>
+      <select name="grade" class="w-full border rounded-xl px-3 py-2">
+        <option value="未開始">還未開始</option>
+        <option value="PN">PN</option>
+        <option value="K1">K1</option>
+        <option value="K2">K2</option>
+        <option value="K3">K3</option>
+        <option value="P1">P1</option>
+        <option value="P2">P2</option>
+        <option value="P3">P3</option>
+        <option value="P4">P4</option>
+        <option value="P5">P5</option>
+        <option value="P6">P6</option>
+        <option value="S1">S1</option>
+        <option value="S2">S2</option>
+        <option value="S3">S3</option>
+      </select>
+      <select name="district" class="w-full border rounded-xl px-3 py-2">
+        <option value="">居住地區（用於估算車程）</option>
+        ${["中西區","灣仔","東區","南區","油尖旺","深水埗","九龍城","黃大仙","觀塘","荃灣","屯門","元朗","北區","大埔","沙田","西貢","葵青","離島"].map(d=>`<option value="${d}">${d}</option>`).join("")}
+      </select>
+      <button class="w-full bg-indigo-600 text-white py-3 rounded-xl">下一步 MBTI</button>
+    </form></div></div>`;
+}
+
+function renderMBTI() {
+  const t = state.mbtiTest, q = MBTI_QUESTIONS[t.current];
+  return `<div class="min-h-screen bg-gray-50 py-8 px-4"><div class="max-w-md mx-auto bg-white rounded-3xl p-6">
+    <div class="flex justify-between mb-4"><b>MBTI</b><span>${t.current+1}/12</span></div>
+    <div class="w-full bg-gray-200 h-2 rounded mb-6"><div class="bg-indigo-600 h-2 rounded" style="width:${t.current/12*100}%"></div></div>
+    <p class="mb-6">${q.q}</p>
+    <button onclick="mbtiAnswer('A')" class="w-full text-left p-4 border rounded-xl mb-2">A. ${q.a}</button>
+    <button onclick="mbtiAnswer('B')" class="w-full text-left p-4 border rounded-xl">B. ${q.b}</button>
+  </div></div>`;
+}
+
+function renderDashboard() {
+  const c = state.currentChild, an = analyzeChild(c);
+  const avg = c.tests?.length ? Math.round(c.tests.reduce((s,t)=>s+t.score,0)/c.tests.length) : null;
+  return `<div class="min-h-screen bg-gray-50"><div class="bg-white border-b px-4 py-3 flex justify-between"><button onclick="state.view='home';render()">←</button><b>${c.name}</b><span>${c.grade}</span></div>
+  <div class="max-w-3xl mx-auto px-4 py-6">
+    <div class="grid grid-cols-3 gap-3 mb-4 text-sm">
+      <div class="bg-white p-3 rounded-xl cursor-pointer" onclick="showMBTIDetail()">性格<br><b>${an.zodiac} · ${an.element}</b><br><span class="text-xs text-indigo-600">${c.mbti} 詳情 →</span></div>
+      <div class="bg-white p-3 rounded-xl">平均分<br><b class="text-2xl text-indigo-600">${avg??"--"}</b></div>
+      <div class="bg-white p-3 rounded-xl">風格<br><b>${an.recommendedStyle}</b></div>
+    </div>
+    <div id="mbti-detail" class="hidden bg-indigo-50 p-4 rounded-xl mb-4 text-sm"></div>
+    <div class="bg-white rounded-2xl p-4 mb-6">
+      <h3 class="font-bold mb-3 text-sm">綜合能力六角分析</h3>
+      <div id="radar-container" class="flex justify-center"></div>
+      <p class="text-xs text-gray-500 mt-2 text-center">根據 MBTI、測驗平均分同紫微綜合計算</p>
+    </div>
+    <button onclick="showAIAnalysis()" class="bg-purple-600 text-white px-4 py-2 rounded-xl mb-4">AI 深度分析</button>
+    <div id="ai-result" class="hidden bg-purple-50 p-4 rounded-xl mb-4 text-sm"></div>
+    <div class="mb-2 text-sm text-gray-600">學童可做以下測驗，從而令學校建議篩選更加準確：</div>
+    <div class="mb-3 text-xs text-amber-600">建議完成中文、英文、數學全部測驗，以獲得更準確的學校配對。</div>
+    <div class="grid grid-cols-3 gap-2 mb-6">
+      <button onclick="startTest('chinese')" class="bg-red-50 p-4 rounded-xl">中文</button>
+      <button onclick="startTest('english')" class="bg-blue-50 p-4 rounded-xl">英文</button>
+      <button onclick="startTest('math')" class="bg-green-50 p-4 rounded-xl">數學</button>
+    </div>
+    <div class="mb-4">
+      <div class="text-sm font-medium mb-2">地區篩選：</div>
+      <div class="flex flex-wrap gap-1 mb-3">
+        ${getDistricts().map(d=>`<button onclick="state.districtFilter='${d}';save();render()" class="px-3 py-1 rounded-full text-sm ${state.districtFilter===d?'bg-indigo-600 text-white':'bg-white border'}">${d}</button>`).join("")}
+      </div>
+      <div class="text-sm font-medium mb-2">學校類型：</div>
+      <div class="flex flex-wrap gap-1">
+        ${["全部","直資","私立","資助","國際","官立"].map(t=>`<button onclick="state.typeFilter='${t}';save();render()" class="px-3 py-1 rounded-full text-sm ${state.typeFilter===t?'bg-purple-600 text-white':'bg-white border'}">${t}</button>`).join("")}
+      </div>
+    </div>
+    ${(() => {
+      const nextLevel = getNextSchoolLevel(c.grade);
+      const schools = filterSchools(recommendSchools(an, nextLevel));
+      return renderSchools(getNextLevelName(c.grade), schools);
+    })()}
+    ${renderInstitutions(recommendInstitutions(an, avg))}
+  </div></div>`;
+}
+
+function getSchoolProsCons(school, analysis, radarData) {
+  const labels = ["學術","創意","社交","紀律","邏輯","直覺"];
+  const strong = [], weak = [];
+  radarData.forEach((v, i) => {
+    if (v >= 70) strong.push(labels[i]);
+    else if (v <= 50) weak.push(labels[i]);
+  });
+  let pros = "風格匹配";
+  let cons = "需適應";
+  if (school.style === analysis.recommendedStyle) pros = "學習風格高度匹配";
+  else if (school.style === "balanced") pros = "均衡環境，適應較易";
+  if (strong.length) pros += "；優勢：" + strong.slice(0,2).join("、");
+  if (weak.length) cons = "相對弱項：" + weak.slice(0,2).join("、");
+  return { pros, cons };
+}
+
+function renderSchools(title, list) {
+  const c = state.currentChild;
+  const an = c ? analyzeChild(c) : {};
+  const avg = c?.tests?.length ? Math.round(c.tests.reduce((s,t)=>s+t.score,0)/c.tests.length) : null;
+  const radar = c ? getRadarData(c, an, avg) : [60,60,60,60,60,60];
+  const home = c?.district || "";
+  if (!list.length) return `<div class="text-sm text-gray-500 mb-4">此篩選條件下暫無學校</div>`;
+  return `<div class="mb-4"><b>${title}</b>${list.slice(0,5).map((s,idx)=>{
+    const pc = getSchoolProsCons(s, an, radar);
+    const pid = "pros-s-" + idx;
+    return `<div class="bg-white p-3 rounded-xl mt-1 text-sm">
+      ${s.img ? `<img src="${s.img}" alt="${s.name}" class="w-full h-28 object-cover rounded-lg mb-2" onerror="this.style.display='none'">` : ""}
+      <div class="flex justify-between"><div><b>${s.name}</b> <span class="text-xs bg-amber-100 text-amber-700 px-1 rounded">${s.rank||""}</span><br><span class="text-xs text-gray-500">${s.type} · ${s.district}${home ? " · 車程 " + estimateTravel(home, s.district) : ""}</span></div><b class="text-indigo-600">${s.match}%</b></div>
+      <div class="mt-1 text-xs"><span class="text-green-600">優勢：${pc.pros}</span><br><span class="text-amber-600">注意：${pc.cons}</span></div>
+      <button onclick="analyzeItem('${pid}','${(s.name||"").replace(/'/g,"")}','${s.type}','${s.focus}','${s.style}')" class="mt-1 text-xs text-purple-600">AI 詳細優缺點</button>
+      <div id="${pid}" class="mt-1 text-xs hidden bg-purple-50 p-2 rounded"></div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function renderInstitutions(recs) {
+  const home = state.currentChild?.district || "";
+  return `<div class="mb-6"><b>補習及活動推薦</b>${recs.map((r,ri)=>`<div class="mt-2"><div class="text-indigo-700 text-sm">${r.category}</div>
+    ${r.items.map((i,ii)=>{
+      const pid = "pros-i-" + ri + "-" + ii;
+      return `<div class="bg-white p-3 rounded-xl border mt-1 text-sm">
+        <div>${i.name} (${i.type})<br><span class="text-gray-500">${i.focus}${home ? " · 車程 " + estimateTravel(home, i.district) : ""}</span></div>
+        <div class="mt-1"><a href="tel:${i.contact}" class="text-indigo-600">${i.contact}</a> · <a href="https://${i.web}" target="_blank" class="text-indigo-600">網站</a></div>
+        <button onclick="analyzeItem('${pid}','${i.name.replace(/'/g,"\\'")}','${i.type}','${i.focus}','')" class="mt-1 text-xs text-purple-600">AI 優缺點</button>
+        <div id="${pid}" class="mt-1 text-xs hidden bg-purple-50 p-2 rounded"></div>
+      </div>`;
+    }).join("")}
+  </div>`).join("")}<p class="text-xs text-gray-400 mt-2">根據平均分、風格同居住地區推薦，車程為估算，請自行確認。</p></div>`;
+}
+
+function renderTest() {
+  const t = state.currentTest, q = t.questions[t.current];
+  return `<div class="min-h-screen bg-gray-50 py-8 px-4"><div class="max-w-md mx-auto bg-white rounded-3xl p-6">
+    <div class="flex justify-between mb-4 text-sm"><span>${t.subject} · ${t.difficulty}</span><span>${t.current+1}/15</span></div>
+    <p class="mb-4 text-lg">${q.question}</p>
+    ${q.options.map((o,i)=>`<button onclick="answer(${i})" class="w-full text-left p-3 border rounded-xl mb-2">${String.fromCharCode(65+i)}. ${o}</button>`).join("")}
+  </div></div>`;
+}
+
+function renderResult() {
+  const t = state.currentTest;
+  return `<div class="min-h-screen flex items-center justify-center"><div class="bg-white rounded-3xl p-10 text-center"><div class="text-6xl font-bold text-indigo-600">${t.score}</div><p class="my-4">答對 ${t.correct}/15</p><button onclick="state.view='dashboard';render()" class="bg-indigo-600 text-white px-6 py-2 rounded-xl">返回</button></div></div>`;
+}
+
+function selectChild(i) { state.currentChild = state.children[i]; if (!state.currentChild.tests) state.currentChild.tests = []; state.view = "dashboard"; render(); }
+
+function saveChild(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  state.tempChild = { 
+    name: fd.get("name"), dob: fd.get("dob"), birthTime: fd.get("birthTime"), 
+    gender: fd.get("gender"), grade: fd.get("grade"), district: fd.get("district") || ""
+  };
+  state.mbtiTest = { current: 0, answers: [] }; state.view = "mbti"; render();
+}
+
+function mbtiAnswer(ch) {
+  const t = state.mbtiTest; t.answers.push(ch); t.current++;
+  if (t.current >= 12) {
+    const child = { ...state.tempChild, mbti: calculateMBTI(t.answers), tests: [] };
+    state.children.push(child); save(); state.currentChild = child; state.view = "dashboard";
+  }
+  render();
+}
+
+function startTest(subject) {
+  const diff = getDifficultyByGrade(state.currentChild.grade);
+  state.currentTest = { subject, difficulty: diff, questions: generateQuestions(subject, diff), current: 0, correct: 0 };
+  state.view = "test"; render();
+}
+
+function answer(choice) {
+  const t = state.currentTest;
+  if (choice === t.questions[t.current].answer) t.correct++;
+  t.current++;
+  if (t.current >= 15) {
+    t.score = Math.round(t.correct / 15 * 100);
+    if (!state.currentChild.tests) state.currentChild.tests = [];
+    state.currentChild.tests.push({ subject: t.subject, score: t.score, date: new Date().toISOString() });
+    const idx = state.children.findIndex(c => c.name === state.currentChild.name && c.dob === state.currentChild.dob);
+    if (idx >= 0) state.children[idx] = state.currentChild;
+    save(); state.view = "result";
+  }
+  render();
+}
+
+function analyzeItem(targetId, name, category, focus, style) {
+  const c = state.currentChild;
+  const an = analyzeChild(c);
+  const box = document.getElementById(targetId);
+  if (!box) return;
+  box.classList.remove("hidden");
+  box.innerHTML = "分析中...";
+
+  const prompt = `你是香港升學顧問。請用廣東話簡潔列出「${name}」（${category}，重點：${focus}）對這個孩子的優點同缺點各 3 點。
+孩子資料：${c.grade}，MBTI ${c.mbti}，學習風格${an.recommendedStyle}，居住${c.district||"未填"}。
+格式：
+優點：
+1. ...
+2. ...
+3. ...
+缺點：
+1. ...
+2. ...
+3. ...
+保持客觀、實用。`;
+
+  if (state.apiKey) {
+    const url = state.apiProvider === "xai" ? "https://api.x.ai/v1/chat/completions" : "https://api.openai.com/v1/chat/completions";
+    const model = state.apiProvider === "xai" ? "grok-3" : "gpt-4o-mini";
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + state.apiKey },
+      body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], temperature: 0.6 })
+    }).then(r => r.json()).then(d => {
+      box.innerHTML = (d.choices?.[0]?.message?.content || "無回應").replace(/\n/g, "<br>");
+    }).catch(() => {
+      box.innerHTML = localProsCons(name, style || focus, an);
+    });
+  } else {
+    box.innerHTML = localProsCons(name, style || focus, an);
+  }
+}
+
+function localProsCons(name, style, an) {
+  const match = style === an.recommendedStyle ? "風格匹配度高" : "風格有差異";
+  return `<b>優點：</b><br>1. ${match}，可能較適合孩子學習節奏<br>2. 提供結構化課程／活動<br>3. 有助建立相關能力<br><br><b>缺點：</b><br>1. 需考慮通勤時間<br>2. 競爭或壓力可能較高<br>3. 費用同時間投入需評估<br><span class="text-gray-400">（本地簡易分析，建議配合 API 取得更詳細內容）</span>`;
+}
+
+function getRadarData(child, analysis, avg) {
+  const mbti = child.mbti || "ENFP";
+  const e = mbti[0] === "E" ? 80 : 45;
+  const n = mbti[1] === "N" ? 75 : 50;
+  const t = mbti[2] === "T" ? 78 : 48;
+  const j = mbti[3] === "J" ? 82 : 42;
+  const academic = avg !== null ? Math.min(95, avg) : 60;
+  const creative = analysis.recommendedStyle === "creative" || analysis.recommendedStyle === "inquiry" ? 85 : 55;
+  return [academic, creative, e, j, t, n];
+}
+
+function renderRadar() {
+  const c = state.currentChild;
+  if (!c) return;
+  const an = analyzeChild(c);
+  const avg = c.tests?.length ? Math.round(c.tests.reduce((s,t)=>s+t.score,0)/c.tests.length) : null;
+  const data = getRadarData(c, an, avg);
+  const labels = ["學術", "創意", "社交", "紀律", "邏輯", "直覺"];
+  const container = document.getElementById("radar-container");
+  if (!container) return;
+
+  const size = 220, cx = 110, cy = 110, maxR = 80;
+  const points = data.map((v, i) => {
+    const angle = (Math.PI * 2 * i / 6) - Math.PI / 2;
+    const r = (v / 100) * maxR;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  });
+  const poly = points.map(p => p.join(",")).join(" ");
+
+  let axes = "";
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI * 2 * i / 6) - Math.PI / 2;
+    const x2 = cx + maxR * Math.cos(angle);
+    const y2 = cy + maxR * Math.sin(angle);
+    const lx = cx + (maxR + 18) * Math.cos(angle);
+    const ly = cy + (maxR + 18) * Math.sin(angle);
+    axes += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#e5e7eb" stroke-width="1"/>`;
+    axes += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#6b7280">${labels[i]}</text>`;
+  }
+
+  container.innerHTML = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <polygon points="${[0,1,2,3,4,5].map(i=>{
+        const a = (Math.PI*2*i/6)-Math.PI/2;
+        return (cx+maxR*Math.cos(a))+","+(cy+maxR*Math.sin(a));
+      }).join(" ")}" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+      ${axes}
+      <polygon points="${poly}" fill="rgba(99,102,241,0.25)" stroke="rgb(99,102,241)" stroke-width="2"/>
+      ${points.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="rgb(99,102,241)"/>`).join("")}
+    </svg>`;
+}
+
+function showMBTIDetail() {
+  const c = state.currentChild;
+  const d = MBTI_DETAILS[c.mbti] || MBTI_DETAILS["ENFP"];
+  const box = document.getElementById("mbti-detail");
+  box.classList.remove("hidden");
+  box.innerHTML = `<b>${c.mbti} · ${d.name}</b><br><br>
+    <b>學習風格：</b>${d.learning}<br>
+    <b>適合學校方向：</b>${d.school}<br>
+    <b>家長注意：</b>${d.tip}`;
+  box.scrollIntoView({ behavior: "smooth" });
+}
+
+function showAIAnalysis() {
+  const c = state.currentChild, an = analyzeChild(c);
+  const avg = c.tests?.length ? Math.round(c.tests.reduce((s,t)=>s+t.score,0)/c.tests.length) : null;
+  const home = c.district || "未填寫";
+  const box = document.getElementById("ai-result"); box.classList.remove("hidden"); box.innerHTML = "分析中...";
+  if (state.apiKey) {
+    const prompt = `你是香港升學顧問。請用廣東話為家長寫一份較詳細分析（400-600字），涵蓋：1.性格與學習特點 2.能力評估 3.學校建議（考慮居住${home}） 4.補習方向 5.實務建議。孩子：${c.name}，${c.grade}，MBTI ${c.mbti}，平均${avg||"無"}。`;
+    const url = state.apiProvider === "xai" ? "https://api.x.ai/v1/chat/completions" : "https://api.openai.com/v1/chat/completions";
+    const model = state.apiProvider === "xai" ? "grok-3" : "gpt-4o-mini";
+    fetch(url, { method:"POST", headers:{"Content-Type":"application/json","Authorization":"Bearer "+state.apiKey}, body:JSON.stringify({model, messages:[{role:"user",content:prompt}]}) })
+      .then(r=>r.json()).then(d=>box.innerHTML=(d.choices?.[0]?.message?.content||"無回應").replace(/\n/g,"<br>"))
+      .catch(()=>box.innerHTML=localAnalysis(c, an, avg, home));
+  } else box.innerHTML = localAnalysis(c, an, avg, home);
+}
+
+function localAnalysis(c, an, avg, home) {
+  return `<b>綜合分析</b><br>${an.personality}<br><br><b>能力：</b>${avg?"平均"+avg+"分":"未有數據"}。<br><b>學校：</b>優先匹配「${an.recommendedStyle}」風格，考慮${home}通勤。<br><b>補習：</b>按弱項加強，避免過度。<br><b>提示：</b>多參觀學校親身感受。`;
+}
+
+render();
+</script>
+</body>
+</html>
